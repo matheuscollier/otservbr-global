@@ -132,8 +132,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 	OperatingSystem_t operatingSystem = static_cast<OperatingSystem_t>(msg.get<uint16_t>());
 
 	uint16_t version = msg.get<uint16_t>();
-	if (version >= 1200 && operatingSystem <= CLIENTOS_NEW_MAC) 
-		enableCompact();
+
 
 	msg.skipBytes(17);
 	/*

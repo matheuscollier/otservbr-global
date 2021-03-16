@@ -2912,6 +2912,91 @@ void Game::playerReceivePingBack(uint32_t playerId)
 	player->sendPingBack();
 }
 
+void Game::playerReceiveNewPing(uint32_t playerId, uint16_t/* localPing*/, uint16_t/* fps*/)
+{
+    Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+    player->receivePing();
+    // do whatever you want with localPing and fps
+    // localPing is just player ping in ms, can be used to detect ddos/lags
+}
+
+/* void Game::playerNewWalk(uint32_t playerId, Position pos, uint8_t flags, std::forward_list<Direction> listDir)
+{
+    Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+	player->resetIdleTime();
+	player->setNextWalkTask(nullptr);
+
+    //bool withPreWalk = flags & 0x01;
+    bool autoWalk = flags & 0x04;
+
+    if(pos.x != 0 && pos.y != 0 && pos != player->getPosition()) {
+        auto& dirs = player->getListWalkDir();           
+        Position nextpos = player->getPosition();
+
+        int limit = 3;
+        for(auto& dir : dirs) {
+            nextpos = getNextPosition(dir, nextpos);                
+            if(--limit == 0) break;
+        }
+
+        if(!autoWalk) { 
+            // manual walk desync, check if can be fixed           
+            if(limit == 0 || nextpos != pos) {
+                player->sendNewCancelWalk();
+                return;                
+            }
+
+            for(auto& dir : listDir) {
+                dirs.push_back(dir);
+            }
+            return;
+        } else {
+            // auto walk desync, check if can be fixed            
+            if(limit > 0 && nextpos == pos) {
+                for(auto& dir : listDir) {
+                    dirs.push_back(dir);
+                }                
+                return;
+            }
+
+            // can't be fixed, so maybe find another way
+            // WARNING: This loop may use extra cpu but makes autowalk (map click) much better
+            for(int x = 0; x < 3; ++x) {
+                if(listDir.empty()) {
+                    player->sendNewCancelWalk();
+                    return;                    
+                }
+
+                for(int i = 0; i < 2; ++i) {
+                    if(listDir.empty())
+                        break;
+                    pos = getNextPosition(listDir.front(), pos);
+                    listDir.pop_front();
+                }
+
+                std::forward_list<Direction> newPath;
+                if(player->getPathTo(pos, newPath, 0, 0, false, true)) {
+                    newPath.reverse();
+                    for(auto& it : newPath)
+                        listDir.push_front(it);            
+                    break;
+                }
+            }
+        }
+    }
+
+	player->startAutoWalk(listDir);        
+} */
+
+
 void Game::playerAutoWalk(uint32_t playerId, const std::forward_list<Direction>& listDir)
 {
 	Player* player = getPlayerByID(playerId);
@@ -4911,7 +4996,7 @@ void Game::playerShowQuestLine(uint32_t playerId, uint16_t questId)
 }
 
 void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type,
-					 const std::string& receiver, const std::string& text)
+					const std::string& receiver, const std::string& text)
 {
 	Player* player = getPlayerByID(playerId);
 	if (!player) {
@@ -4919,6 +5004,11 @@ void Game::playerSay(uint32_t playerId, uint16_t channelId, SpeakClasses type,
 	}
 
 	player->resetIdleTime();
+	
+	// OTCLIENTV8 New walking, direction correction
+    /* if(dir != DIRECTION_NONE && player->getPosition().z == pos.z) {
+        internalCreatureTurn(player, dir);
+    } */
 
 	if (playerSaySpell(player, type, text)) {
 		return;

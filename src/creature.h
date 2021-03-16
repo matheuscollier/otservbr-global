@@ -509,6 +509,12 @@ class Creature : virtual public Thing
 				delete this;
 			}
 		}
+		
+		/*  std::forward_list<Direction>& getListWalkDir() {
+            return listWalkDir;
+        }
+
+        bool tryToFixAutoWalk(Direction dir); */
 
 	protected:
 		virtual bool useCacheMap() const {

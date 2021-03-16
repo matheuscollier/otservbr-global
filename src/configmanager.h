@@ -62,6 +62,7 @@ class ConfigManager
 			ALLOW_CLIENT_OLD,
 			MAP_CUSTOM_ENABLED,
 			ALL_CONSOLE_LOG,
+			PACKET_COMPRESSION,
 
 			LAST_BOOLEAN_CONFIG /* this must be the last one */
 		};

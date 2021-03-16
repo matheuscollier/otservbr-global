@@ -206,10 +206,17 @@ void Creature::onCreatureWalk()
 		uint32_t flags = FLAG_IGNOREFIELDDAMAGE;
 		if (getNextStep(dir, flags)) {
 			ReturnValue ret = g_game.internalMoveCreature(this, dir, flags);
+			/* if(getPlayer() && ret != RETURNVALUE_NOERROR) { // it's player and walk path is invalid
+                if(tryToFixAutoWalk(dir)) { // correction for auto walking
+                    ret = g_game.internalMoveCreature(this, dir, flags);
+                }
+            } */
+			
 			if (ret != RETURNVALUE_NOERROR) {
 				if (Player* player = getPlayer()) {
 					player->sendCancelMessage(ret);
 					player->sendCancelWalk();
+					// player->sendNewCancelWalk();
 				}
 
 				forceUpdateFollowPath = true;
@@ -967,13 +974,14 @@ void Creature::goToFollowCreature()
 
 bool Creature::setFollowCreature(Creature* creature)
 {
+	// it should be here, should also work for nullptr
+    if (followCreature == creature) {
+        return true;
+    }
+	
 	if (creature) {
 		if (returnToMasterInterval > 0 && master && creature != master)
 			return false;
-
-		if (followCreature == creature) {
-			return true;
-		}
 
 		const Position& creaturePos = creature->getPosition();
 		if (creaturePos.z != getPosition().z || !canSee(creaturePos)) {
@@ -1660,3 +1668,31 @@ bool Creature::getPathTo(const Position& targetPos, std::forward_list<Direction>
 	fpp.maxTargetDist = maxTargetDist;
 	return getPathTo(targetPos, dirList, fpp);
 }
+
+// WARNING: This function may use extra cpu but makes autowalk (map click) much better
+/* bool Creature::tryToFixAutoWalk(Direction dir)
+{
+    Position pos = getNextPosition(dir, getPosition());
+    for(int x = 0; x < 3; ++x) {
+        if(listWalkDir.empty()) {
+            break;
+        }
+
+        for(int i = 0; i < 2; ++i) {
+            if(listWalkDir.empty())
+                break;
+            pos = getNextPosition(listWalkDir.front(), pos);
+            listWalkDir.pop_front();
+        }
+
+        std::forward_list<Direction> newPath;
+        if(getPathTo(pos, newPath, 0, 0, false, true)) {
+            newPath.reverse();
+            for(auto& it : newPath)
+                listWalkDir.push_front(it);            
+            return true;
+        }
+    }
+
+    return false;
+}  */

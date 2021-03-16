@@ -1217,6 +1217,11 @@ class Player final : public Creature, public Cylinder
 				client->sendCancelWalk();
 			}
 		}
+		void sendNewCancelWalk() const {
+			if (client) {
+				client->sendNewCancelWalk();
+			}
+		}
 		void sendChangeSpeed(const Creature* creature, uint32_t newSpeed) const {
 			if (client) {
 				client->sendChangeSpeed(creature, newSpeed);
